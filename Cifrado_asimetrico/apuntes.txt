@@ -1,0 +1,59 @@
+--- VERIFICAR COMMIT DEL PROFESOR EN LOCAL ---
+
+gpg --import clave_profesor.asc (importar clave profesor)
+
+git verify-commit <hash>
+
+
+--- VERIFICAR UN COMMIT EN MI REPO ---
+
+git config --global user.signingkey <mi_clave> (Nota: tener el mismo email que en github, usar "gpg --edit-key <mi_clave>" y "adduid")
+
+gpg --armor --export ID_DE_TU_CLAVE (subir clave a github --> configuracion --> claves SSH y GPG)
+
+git commit -S -m "mensaje commit"
+
+
+--- EXPORTAR CLAVES A OTROS EQUIPOS ---
+
+gpg --armor --export-secret-keys <mi_clave> > mi-clave-privada.asc  (¡¡¡NO COMPARTIR!!! "mi-clave-privada.asc" en Discord,Github...)
+
+gpg --import mi-clave-privada.asc   (en el otro equipo)
+
+gpg --delete-secret-key <mi_clave>    (borrar la clave privada al terminar en el otro equipo)
+gpg --delete-key <mi_clave>     (borrar la clave publica al terminar en el otro equipo)
+gpg --delete-secret-and-public-key <mi_clave>   (en ultimas versiones)
+
+gpg --symmetric documento.pdf   (cifrado simetrico de un mensaje)
+
+
+--- CLAVES RSA CON OPENSSL ---
+
+openssl genpkey -algorithm RSA -out clave.pem   (Genera un par de claves)
+
+openssl rsa -text -in clave.pem (Ver estructura interna de clave.pem --> contiene las claves)
+
+openssl rsa -pubout -in clave.pem -out clave_publica.pem    (Extraer la clave publica)
+
+openssl pkeyutl -encrypt -pubin -inkey clave_publica.pem -in mensaje.txt -out mensaje_cifrado.bin 
+(
+    -encrypt → cifra.
+    -pubin → indica que clave_publica.pem contiene una clave pública.
+    -inkey clave_publica.pem → clave que se utiliza para cifrar.
+    -in mensaje.txt → mensaje original.
+    -out mensaje_cifrado.bin → resultado cifrado.
+)
+
+openssl pkeyutl -decrypt -inkey clave_privada.pem -in mensaje_cifrado.bin -out mensaje_descifrado.txt   (desencriptar)
+
+Usar cifrado hibrido con AES y RSA:
+(
+    1 Generas una clave AES aleatoria.
+    2 Cifras el archivo completo con AES.
+    3 Cifras la clave AES con la clave pública RSA del receptor.
+    4 Envías al receptor:
+    5 el archivo cifrado con AES
+    6 la clave AES cifrada con RSA.
+    7 El receptor usa su clave privada RSA para recuperar la clave AES.
+    8 Usa esa clave AES para descifrar el archivo.
+)
